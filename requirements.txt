@@ -1,5 +1,4 @@
 --extra-index-url https://download.pytorch.org/whl/cu124
---index-strategy unsafe-best-match
 Flask==3.1.0
 huggingface_hub==0.24.5
 onnxruntime_gpu==1.18.1
