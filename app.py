@@ -62,7 +62,7 @@ def predict():
     file.save(file_path)
     
     # Get parameters from form
-    model_repo = request.form.get('model', SWINV2_MODEL_DSV3_REPO)
+    model_repo = request.form.get('model', EVA02_LARGE_MODEL_DSV3_REPO)
     general_thresh = float(request.form.get('general_thresh', 0.35))
     general_mcut_enabled = request.form.get('general_mcut_enabled', 'false').lower() == 'true'
     character_thresh = float(request.form.get('character_thresh', 0.85))
@@ -110,7 +110,7 @@ def batch_process():
         return jsonify({'error': 'Invalid directory path'}), 400
     
     # Get parameters from form
-    model_repo = request.form.get('model', SWINV2_MODEL_DSV3_REPO)
+    model_repo = request.form.get('model', EVA02_LARGE_MODEL_DSV3_REPO)
     general_thresh = float(request.form.get('general_thresh', 0.35))
     general_mcut_enabled = request.form.get('general_mcut_enabled', 'false').lower() == 'true'
     character_thresh = float(request.form.get('character_thresh', 0.85))

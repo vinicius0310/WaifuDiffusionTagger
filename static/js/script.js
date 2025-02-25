@@ -1,4 +1,21 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Set default model to EVA02_LARGE
+    const setDefaultModel = (selectId) => {
+        const modelSelect = document.getElementById(selectId);
+        if (modelSelect) {
+            for (let i = 0; i < modelSelect.options.length; i++) {
+                if (modelSelect.options[i].value.includes('eva02-large')) {
+                    modelSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+    };
+    
+    // Set default model for both tabs
+    setDefaultModel('model-select');
+    setDefaultModel('batch-model-select');
+    
     // Tab switching functionality
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
@@ -49,8 +66,32 @@ document.addEventListener('DOMContentLoaded', function() {
         imagePreview.style.borderColor = 'var(--border-color)';
         imagePreview.style.backgroundColor = 'var(--card-bg)';
         
+        // Handle files dropped from file explorer
         if (e.dataTransfer.files.length) {
             handleImageFile(e.dataTransfer.files[0]);
+            return;
+        }
+        
+        // Handle images dragged from other webpages
+        const html = e.dataTransfer.getData('text/html');
+        const uriList = e.dataTransfer.getData('text/uri-list');
+        
+        if (html) {
+            // Extract image URL from HTML
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const imgElement = doc.querySelector('img');
+            
+            if (imgElement && imgElement.src) {
+                handleImageUrl(imgElement.src);
+                return;
+            }
+        }
+        
+        // Try URI list (direct link to image)
+        if (uriList) {
+            handleImageUrl(uriList.split('\n')[0]);
+            return;
         }
     });
     
@@ -74,6 +115,41 @@ document.addEventListener('DOMContentLoaded', function() {
             uploadPlaceholder.style.display = 'none';
         };
         reader.readAsDataURL(file);
+        
+        // Update the file input element with the dropped file
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        imageUpload.files = dataTransfer.files;
+    }
+    
+    function handleImageUrl(url) {
+        // Create a temporary image to check if the URL is valid
+        const tempImg = new Image();
+        tempImg.crossOrigin = 'anonymous';
+        tempImg.onload = () => {
+            // Valid image URL
+            previewImage.src = url;
+            previewImage.crossOrigin = 'anonymous';
+            previewImage.style.display = 'block';
+            uploadPlaceholder.style.display = 'none';
+            
+            // Convert the image to a file for form submission
+            fetch(url)
+                .then(response => response.blob())
+                .then(blob => {
+                    const file = new File([blob], 'dragged-image.jpg', { type: blob.type });
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    imageUpload.files = dataTransfer.files;
+                })
+                .catch(error => {
+                    console.error('Error fetching image:', error);
+                });
+        };
+        tempImg.onerror = () => {
+            alert('Unable to load image from this URL');
+        };
+        tempImg.src = url;
     }
     
     // Slider value display
@@ -112,8 +188,8 @@ document.addEventListener('DOMContentLoaded', function() {
         previewImage.style.display = 'none';
         uploadPlaceholder.style.display = 'flex';
         
-        // Reset form values
-        document.getElementById('model-select').selectedIndex = 0;
+        // Reset form values but keep EVA02_LARGE model selected
+        setDefaultModel('model-select');
         generalThreshold.value = 0.35;
         generalThresholdValue.textContent = '0.35';
         document.getElementById('general-mcut').checked = false;
@@ -137,7 +213,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const batchClearBtn = document.getElementById('batch-clear-btn');
     batchClearBtn.addEventListener('click', () => {
         document.getElementById('directory-input').value = '';
-        document.getElementById('batch-model-select').selectedIndex = 0;
+        // Keep EVA02_LARGE model selected
+        setDefaultModel('batch-model-select');
         batchGeneralThreshold.value = 0.35;
         batchGeneralThresholdValue.textContent = '0.35';
         document.getElementById('batch-general-mcut').checked = false;
