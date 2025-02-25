@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaifuDiffusion Tagger</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>WaifuDiffusion Tagger</h1>
+            <p class="subtitle">Analyze anime-style images and extract tags</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="single">Single Image</button>
+            <button class="tab-btn" data-tab="batch">Batch Processing</button>
+        </div>
+
+        <div class="tab-content active" id="single-tab">
+            <div class="content-wrapper">
+                <div class="left-panel">
+                    <div class="image-upload-container">
+                        <div class="image-preview" id="image-preview">
+                            <div class="upload-placeholder">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Drag & drop an image or click to browse</p>
+                            </div>
+                            <img id="preview-image" src="" alt="" style="display: none;">
+                        </div>
+                        <input type="file" id="image-upload" accept="image/*" style="display: none;">
+                    </div>
+                    
+                    <div class="settings-container">
+                        <div class="setting-group">
+                            <label for="model-select">Model</label>
+                            <select id="model-select" class="fancy-select">
+                                {% for model in models %}
+                                <option value="{{ model }}">{{ model }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="setting-group">
+                            <div class="setting-header">
+                                <label for="general-threshold">General Tags Threshold</label>
+                                <span class="threshold-value" id="general-threshold-value">0.35</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" id="general-threshold" min="0" max="1" step="0.05" value="0.35">
+                            </div>
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="general-mcut" class="fancy-checkbox">
+                                <label for="general-mcut">Use MCut threshold</label>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-group">
+                            <div class="setting-header">
+                                <label for="character-threshold">Character Tags Threshold</label>
+                                <span class="threshold-value" id="character-threshold-value">0.85</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" id="character-threshold" min="0" max="1" step="0.05" value="0.85">
+                            </div>
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="character-mcut" class="fancy-checkbox">
+                                <label for="character-mcut">Use MCut threshold</label>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-group">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="weighted-captions" class="fancy-checkbox">
+                                <label for="weighted-captions">Use weighted captions</label>
+                            </div>
+                        </div>
+                        
+                        <div class="button-group">
+                            <button id="clear-btn" class="secondary-btn">Clear</button>
+                            <button id="submit-btn" class="primary-btn">Analyze</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="right-panel">
+                    <div class="results-container">
+                        <div class="result-group">
+                            <h3>Tags</h3>
+                            <div class="tags-output" id="tags-output">
+                                <div class="placeholder-text">Tags will appear here after analysis</div>
+                            </div>
+                            <button id="copy-tags-btn" class="icon-btn" title="Copy to clipboard">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="result-group">
+                            <h3>Rating</h3>
+                            <div class="rating-output" id="rating-output">
+                                <div class="placeholder-text">Rating will appear here after analysis</div>
+                            </div>
+                        </div>
+                        
+                        <div class="result-group">
+                            <h3>Character Tags</h3>
+                            <div class="character-output" id="character-output">
+                                <div class="placeholder-text">Character tags will appear here after analysis</div>
+                            </div>
+                        </div>
+                        
+                        <div class="result-group">
+                            <h3>General Tags</h3>
+                            <div class="general-output" id="general-output">
+                                <div class="placeholder-text">General tags will appear here after analysis</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="batch-tab">
+            <div class="content-wrapper">
+                <div class="left-panel">
+                    <div class="directory-input-container">
+                        <label for="directory-input">Image Directory</label>
+                        <div class="directory-input-group">
+                            <input type="text" id="directory-input" placeholder="Path to the directory containing images">
+                            <button id="browse-btn" class="secondary-btn">Browse</button>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-container">
+                        <div class="setting-group">
+                            <label for="batch-model-select">Model</label>
+                            <select id="batch-model-select" class="fancy-select">
+                                {% for model in models %}
+                                <option value="{{ model }}">{{ model }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="setting-group">
+                            <div class="setting-header">
+                                <label for="batch-general-threshold">General Tags Threshold</label>
+                                <span class="threshold-value" id="batch-general-threshold-value">0.35</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" id="batch-general-threshold" min="0" max="1" step="0.05" value="0.35">
+                            </div>
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="batch-general-mcut" class="fancy-checkbox">
+                                <label for="batch-general-mcut">Use MCut threshold</label>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-group">
+                            <div class="setting-header">
+                                <label for="batch-character-threshold">Character Tags Threshold</label>
+                                <span class="threshold-value" id="batch-character-threshold-value">0.85</span>
+                            </div>
+                            <div class="slider-container">
+                                <input type="range" id="batch-character-threshold" min="0" max="1" step="0.05" value="0.85">
+                            </div>
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="batch-character-mcut" class="fancy-checkbox">
+                                <label for="batch-character-mcut">Use MCut threshold</label>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-group">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="batch-append" class="fancy-checkbox">
+                                <label for="batch-append">Append to existing tag files</label>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-group">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="batch-exclude-character" class="fancy-checkbox">
+                                <label for="batch-exclude-character">Exclude character tags</label>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-group">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="batch-weighted-captions" class="fancy-checkbox">
+                                <label for="batch-weighted-captions">Use weighted captions</label>
+                            </div>
+                        </div>
+                        
+                        <div class="button-group">
+                            <button id="batch-clear-btn" class="secondary-btn">Clear</button>
+                            <button id="batch-submit-btn" class="primary-btn">Process Batch</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="right-panel">
+                    <div class="batch-results-container">
+                        <h3>Batch Processing Results</h3>
+                        <div class="batch-output" id="batch-output">
+                            <div class="placeholder-text">Results will appear here after processing</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Powered by WaifuDiffusion Tagger Models</p>
+        </footer>
+    </div>
+
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="spinner"></div>
+        <p>Processing...</p>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
