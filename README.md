@@ -27,7 +27,7 @@ A web-based application for automatically tagging anime-style images using state
 
 1. Clone this repository:
    ```
-   git clone https://github.com/yourusername/WaifuDiffusionTagger.git
+   git clone https://github.com/vinicius0310/WaifuDiffusionTagger.git
    cd WaifuDiffusionTagger
    ```
 
